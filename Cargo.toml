@@ -10,3 +10,6 @@ repository = "https://github.com/phaazon/this-week-in-neovim.org"
 readme = "README.md"
 edition = "2021"
 rust-version = "1.56.0"
+
+[dependencies]
+yew = "0.19.3"
