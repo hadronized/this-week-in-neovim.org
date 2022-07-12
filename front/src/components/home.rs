@@ -68,6 +68,60 @@ impl Component for HomeComponent {
             { news_list }
           </ul>
         </div>
+
+        <div class={"section"}>
+          <h1>{ "Want to contribute?" }</h1>
+
+          <p>{ "You have noticed something missing that you saw lately? Do not keep the candies for yourself and please feel free to
+          share with us! You can open a PR at https://github.com/phaazon/this-week-in-rust-contents." }</p>
+
+          <p>{ "Feel free to read https://github.com/phaazon/this-week-in-rust-contents/README.md#how-to-contribute to get started." }</p>
+        </div>
+
+        <footer class={"footer has-text-centered"}>
+          <p>
+            { "Made by " }
+            <a href={"https://github.com/phaazon"}>{ "Dimitri @phaazon Sabadie" }</a>
+            { " and contributors." }
+          </p>
+          <p>
+            <a href={"https://github.com/phaazon/this-week-in-neovim.org"}>
+              <span class={"icon-text has-text-link"}>
+                <span class={"icon"}>
+                  <i class={"fa-brands fa-github"}></i>
+                </span>
+                <span>{ "TWiN" }</span>
+              </span>
+            </a>
+            { " | " }
+            <a href={"https://rust-lang.org"}>
+              <span class={"icon-text has-text-link"}>
+                <span class={"icon"}>
+                  <i class={"fa-brands fa-rust"}></i>
+                </span>
+                <span>{ "Rust" }</span>
+              </span>
+            </a>
+            { " | " }
+            <a href={"https://rocket.rs"}>
+              <span class={"icon-text has-text-link"}>
+                <span class={"icon"}>
+                  <i class={"fa-solid fa-shuttle-space"}></i>
+                </span>
+                <span>{ "rocket-rs" }</span>
+              </span>
+            </a>
+            { " | " }
+            <a href={"https://yew.rs"}>
+              <span class={"icon-text has-text-link"}>
+                <span class={"icon"}>
+                  <i class={"fa-solid fa-y"}></i>
+                </span>
+                <span>{ "Yew" }</span>
+              </span>
+            </a>
+          </p>
+        </footer>
       </div>
     }
   }
