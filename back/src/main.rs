@@ -25,9 +25,10 @@ fn rocket() -> _ {
       let state = NewsState::new(&config.news_root);
       run_state(&config, state.clone());
 
-      rocket::custom(rocket_config)
-        .manage(state)
-        .mount("/api", routes![api::root, api::by_year_week_nb])
+      rocket::custom(rocket_config).manage(state).mount(
+        "/api",
+        routes![api::root, api::latest, api::by_year_week_nb],
+      )
     }
 
     Err(err) => {

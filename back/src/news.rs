@@ -57,7 +57,7 @@ impl News {
 /// Key used to uniquely refer to a weekly news.
 ///
 /// It is composed of the year and week number.
-#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct NewsKey {
   pub year: u16,
   pub week_nb: u8,

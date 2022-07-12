@@ -15,6 +15,16 @@ pub fn root(state: &State<NewsState>) -> Json<Vec<NewsKey>> {
   Json(keys)
 }
 
+#[get("/latest")]
+pub fn latest(state: &State<NewsState>) -> Result<RawHtml<String>, NotFound<String>> {
+  let news_store = state.news_store().read().expect("news store");
+  let latest_key = news_store
+    .keys()
+    .max()
+    .ok_or_else(|| NotFound("no latest news available".to_owned()))?;
+  by_year_week_nb(latest_key.year, latest_key.week_nb, state)
+}
+
 #[get("/<year>/<week_nb>")]
 pub fn by_year_week_nb(
   year: u16,
