@@ -1,0 +1,2 @@
+port = 8000
+news_root = "../../this-week-in-neovim-contents/contents"

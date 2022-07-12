@@ -1,5 +1,4 @@
 mod components;
-mod config;
 mod router;
 
 use crate::{components::home::HomeComponent, config::Config};
