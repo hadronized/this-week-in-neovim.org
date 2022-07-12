@@ -4,8 +4,7 @@ use rocket::{
   serde::json::Json,
   State,
 };
-
-use crate::news::{NewsKey, NewsState};
+use twin::news::{NewsKey, NewsState};
 
 #[get("/")]
 pub fn root(state: &State<NewsState>) -> Json<Vec<NewsKey>> {

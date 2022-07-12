@@ -1,5 +1,5 @@
 [package]
-name = "this-week-in-neovim-backend"
+name = "twin"
 version = "0.1.0"
 license = "BSD-3-Clause"
 authors = ["Dimitri Sabadie <dimitri.sabadie@gmail.com>"]
@@ -12,11 +12,5 @@ edition = "2021"
 rust-version = "1.56.0"
 
 [dependencies]
-chrono = "0.4.19"
-log = "0.4.17"
-notify = "4.0.17"
 pulldown-cmark = "0.9.1"
-rocket = { version = "0.5.0-rc.2", features = ["json"] }
-serde = "1"
-toml = "0.5.9"
-twin = { version = "0.1", path = "../twin" }
+serde = { version = "1", features = ["derive"] }

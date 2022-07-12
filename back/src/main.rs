@@ -1,8 +1,7 @@
 mod api;
 mod config;
-mod news;
 
-use crate::{config::Config, news::NewsState};
+use crate::config::Config;
 use notify::Watcher;
 use rocket::{launch, log::LogLevel, routes};
 use std::{
@@ -12,6 +11,7 @@ use std::{
   thread,
   time::Duration,
 };
+use twin::news::NewsState;
 
 #[launch]
 fn rocket() -> _ {

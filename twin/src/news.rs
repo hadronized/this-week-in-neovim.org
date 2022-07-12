@@ -6,7 +6,7 @@ use std::{
   sync::{Arc, RwLock},
 };
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
 pub enum NewsError {
@@ -57,7 +57,7 @@ impl News {
 /// Key used to uniquely refer to a weekly news.
 ///
 /// It is composed of the year and week number.
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct NewsKey {
   pub year: u16,
   pub week_nb: u8,
