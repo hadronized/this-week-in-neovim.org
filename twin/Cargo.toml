@@ -12,5 +12,6 @@ edition = "2021"
 rust-version = "1.56.0"
 
 [dependencies]
+log = "0.4.17"
 pulldown-cmark = "0.9.1"
 serde = { version = "1", features = ["derive"] }

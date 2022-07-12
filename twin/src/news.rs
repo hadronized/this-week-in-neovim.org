@@ -57,7 +57,7 @@ impl News {
 /// Key used to uniquely refer to a weekly news.
 ///
 /// It is composed of the year and week number.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct NewsKey {
   pub year: u16,
   pub week_nb: u8,
@@ -103,6 +103,8 @@ impl NewsStore {
   pub fn populate_from_root(&mut self) -> Result<(), NewsError> {
     for entry in fs::read_dir(&self.root_path)? {
       if let Ok(entry) = entry {
+        log::debug!("traversing {}", entry.path().display());
+
         if entry.path().is_dir() {
           let year = entry
             .file_name()
@@ -115,13 +117,15 @@ impl NewsStore {
 
           for week_entry in fs::read_dir(entry.path())? {
             if let Ok(week_entry) = week_entry {
+              log::debug!("found week file {}", week_entry.path().display());
+
               if week_entry.path().is_file() {
-                let week_nb = week_entry // TODO
+                let week_nb = week_entry
                   .file_name()
                   .to_str()
                   .ok_or(NewsError::CannotParseWeek(format!(
                     "{:?}",
-                    entry.file_name()
+                    week_entry.file_name()
                   )))
                   .and_then(file_name_to_week_nb)?;
                 let key = NewsKey { year, week_nb };
@@ -142,11 +146,13 @@ impl NewsStore {
   /// If some HTML was already present for that key, it is returned.
   pub fn update(&mut self, key: NewsKey) -> Result<Option<News>, NewsError> {
     let path = format!(
-      "{}/{}/week-{}.md",
+      "{}/{}/week-{:02}.md",
       self.root_path.display(),
       key.year,
       key.week_nb
     );
+
+    log::debug!("updating week key: {:?} (path={})", key, path);
 
     let news = News::load_from_md(path)?;
     let previous_news = self.news.insert(key, news);

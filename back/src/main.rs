@@ -3,7 +3,7 @@ mod config;
 
 use crate::config::Config;
 use notify::Watcher;
-use rocket::{launch, log::LogLevel, routes};
+use rocket::{fs::FileServer, launch, log::LogLevel, routes};
 use std::{
   net::{IpAddr, Ipv4Addr},
   process::exit,
@@ -25,10 +25,16 @@ fn rocket() -> _ {
       let state = NewsState::new(&config.news_root);
       run_state(&config, state.clone());
 
-      rocket::custom(rocket_config).manage(state).mount(
-        "/api",
-        routes![api::root, api::latest, api::by_year_week_nb],
-      )
+      // serve the webapp directly, because fuck it
+      let webapp_serve = FileServer::new(&config.webapp_dir, rocket::fs::Options::Index);
+
+      rocket::custom(rocket_config)
+        .manage(state)
+        .mount(
+          "/api",
+          routes![api::root, api::latest, api::by_year_week_nb],
+        )
+        .mount("/", webapp_serve)
     }
 
     Err(err) => {
@@ -41,6 +47,8 @@ fn rocket() -> _ {
 fn run_state(config: &Config, state: NewsState) {
   let config = config.clone();
   let _ = thread::spawn(move || {
+    thread::sleep(Duration::from_secs(1)); // just wait a bit until rocket is fully initialized
+
     if let Err(err) = state
       .news_store()
       .write()
