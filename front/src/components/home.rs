@@ -1,5 +1,4 @@
-use std::time::Instant;
-
+use crate::config::Config;
 use chrono::Utc;
 use yew::{html, Component};
 
@@ -8,7 +7,7 @@ pub struct HomeComponent;
 impl Component for HomeComponent {
   type Message = ();
 
-  type Properties = ();
+  type Properties = Config;
 
   fn create(ctx: &yew::Context<Self>) -> Self {
     HomeComponent

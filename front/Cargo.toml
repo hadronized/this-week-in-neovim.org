@@ -1,5 +1,5 @@
 [package]
-name = "this-week-in-neovim"
+name = "this-week-in-neovim-frontend"
 version = "0.1.0"
 license = "BSD-3-Clause"
 authors = ["Dimitri Sabadie <dimitri.sabadie@gmail.com>"]
@@ -13,5 +13,9 @@ rust-version = "1.56.0"
 
 [dependencies]
 chrono = { version = "0.4.19", features = ["wasmbind"] }
+log = "0.4.17"
+serde = "1"
+toml = "0.5.9"
 yew = "0.19.3"
 yew-router = "0.16.0"
+wasm-logger = "0.2.0"
