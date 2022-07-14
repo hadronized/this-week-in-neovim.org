@@ -61,7 +61,7 @@ fn rocket() -> _ {
     }
 
     Err(err) => {
-      log::error!("cannot start: configuration error: {}", err);
+      eprintln!("cannot start: configuration error: {}", err);
       exit(1)
     }
   }

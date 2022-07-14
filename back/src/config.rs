@@ -2,12 +2,14 @@ use serde::Deserialize;
 use std::{env, fmt::Display, fs, path::PathBuf};
 
 pub enum ConfigError {
+  CannotReadConfig,
   Toml(toml::de::Error),
 }
 
 impl Display for ConfigError {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match self {
+      ConfigError::CannotReadConfig => f.write_str("cannot read configuration file"),
       ConfigError::Toml(e) => write!(f, "toml error: {}", e),
     }
   }
@@ -33,10 +35,15 @@ pub struct Config {
 
 impl Config {
   pub fn load() -> Result<Self, ConfigError> {
-    log::debug!("loading configuration");
+    println!("loading configuration");
 
-    let path = env::var("TWIN_CONFIG").unwrap_or_else(|_| "config.toml".to_owned());
-    log::debug!("┝ loading with path: {}", path);
+    let path = PathBuf::from(env::var("TWIN_CONFIG").unwrap_or_else(|_| "config.toml".to_owned()));
+
+    if !path.is_file() {
+      return Err(ConfigError::CannotReadConfig);
+    }
+
+    println!("┝ loading with path: {}", path.display());
 
     let contents = fs::read_to_string(&path).expect("config file");
     let config = toml::from_str(&contents)?;
