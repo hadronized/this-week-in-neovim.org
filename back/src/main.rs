@@ -55,10 +55,7 @@ fn rocket() -> _ {
       rocket::custom(rocket_config)
         .manage(state)
         .manage(backend_state)
-        .mount(
-          "/api",
-          routes![api::root, api::latest, api::by_year_week_nb],
-        )
+        .mount("/api", routes![api::root, api::latest, api::by_key])
         .mount("/", webapp_serve)
         .mount("/", routes![serve_index_html])
     }

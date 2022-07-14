@@ -1,5 +1,6 @@
 use reqwasm::http::Request;
 
+use twin::news::Month;
 use yew::{html, Component, NodeRef, Properties};
 
 pub struct Week {
@@ -16,8 +17,11 @@ pub struct WeekProps {
   #[prop_or_default]
   pub year: u16,
 
+  #[prop_or(Month::Jan)]
+  pub month: Month,
+
   #[prop_or_default]
-  pub week_nb: u8,
+  pub day: u8,
 }
 
 impl Component for Week {
@@ -31,7 +35,7 @@ impl Component for Week {
     let url = if props.year == 0 {
       "api/latest".to_owned()
     } else {
-      format!("/api/{}/{}", props.year, props.week_nb)
+      format!("/api/{}/{}/{}", props.year, props.month, props.day)
     };
 
     ctx.link().send_future(async move {

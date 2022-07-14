@@ -34,19 +34,21 @@ impl Component for Home {
   }
 
   fn view(&self, _ctx: &yew::Context<Self>) -> yew::Html {
+    let keys_len = self.keys.len();
     let mut iter = self.keys.iter();
+
     let first = iter.next().map(|key| {
-      let href = format!("/{}/{}", key.year, key.week_nb);
+      let href = format!("/{}/{}/{:02}", key.year, key.month, key.day);
       html! {
-        <li>
+        <li class="is-size-2">
           <a href={ href }>
-            { key.year } { " #" } { key.week_nb }
+            { key.year } {" "} { key.month} {" "} { format!("{:02}", key.day) } { " #" } { keys_len }
           </a>
 
           { " " }
 
           <a href="/latest">
-            <span class={"tag is-link"}>{ "latest" }</span>
+            <span class={"tag is-link is-large"}>{ "latest" }</span>
           </a>
         </li>
       }
@@ -54,12 +56,14 @@ impl Component for Home {
 
     let news_list: Vec<_> = first
       .into_iter()
-      .chain(iter.map(|key| {
-        let href = format!("/{}/{}", key.year, key.week_nb);
+      .chain(iter.enumerate().map(|(k, key)| {
+        let href = format!("/{}/{}/{:02}", key.year, key.month, key.day);
+        let k = keys_len - k - 1;
+
         html! {
-          <li>
+          <li class="is-size-2">
             <a href={ href }>
-              { key.year } { " #" } { key.week_nb }
+              { key.year } {" "} { key.month} {" "} { format!("{:02}", key.day) } { " #" } { k }
             </a>
           </li>
         }

@@ -1,5 +1,6 @@
 use crate::components::{home::Home, week::Week};
 use chrono::{Datelike, Utc};
+use twin::news::Month;
 use yew::{html, Html};
 use yew_router::Routable;
 
@@ -11,8 +12,8 @@ pub enum Route {
   #[at("/latest")]
   Latest,
 
-  #[at("/:year/:week_nb")]
-  Week { year: u16, week_nb: u8 },
+  #[at("/:year/:month/:day")]
+  Week { year: u16, month: Month, day: u8 },
 
   #[not_found]
   #[at("/404")]
@@ -26,7 +27,7 @@ impl Route {
 
       Route::Latest => html! { <Week /> },
 
-      Route::Week { year, week_nb } => html! { <Week year={year} week_nb={week_nb} /> },
+      Route::Week { year, month, day } => html! { <Week year={year} month={month} day={day} /> },
 
       Route::NotFound => todo!(),
     };

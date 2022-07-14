@@ -1,18 +1,49 @@
+use serde::{de::IntoDeserializer, Deserialize, Serialize};
 use std::{
   collections::HashMap,
   fmt::Display,
   fs, io,
   path::{Path, PathBuf},
+  str::FromStr,
   sync::{Arc, RwLock},
 };
 
-use serde::{Deserialize, Serialize};
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub enum Month {
+  Jan,
+  Feb,
+  Mar,
+  Apr,
+  May,
+  Jun,
+  Jul,
+  Aug,
+  Sep,
+  Oct,
+  Nov,
+  Dec,
+}
+
+impl Display for Month {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    self.serialize(f)
+  }
+}
+
+impl FromStr for Month {
+  type Err = serde::de::value::Error;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    Self::deserialize(s.into_deserializer())
+  }
+}
 
 #[derive(Debug)]
 pub enum NewsError {
   IOError(io::Error),
   CannotParseYear(String),
-  CannotParseWeek(String),
+  CannotParseMonth(String),
+  CannotParseDay(String),
 }
 
 impl Display for NewsError {
@@ -20,7 +51,8 @@ impl Display for NewsError {
     match self {
       NewsError::IOError(e) => write!(f, "IO error: {}", e),
       NewsError::CannotParseYear(p) => write!(f, "cannot parse year directory: {}", p),
-      NewsError::CannotParseWeek(p) => write!(f, "cannot parse week file name: {}", p),
+      NewsError::CannotParseMonth(p) => write!(f, "cannot parse month directory: {}", p),
+      NewsError::CannotParseDay(p) => write!(f, "cannot parse day file: {}", p),
     }
   }
 }
@@ -60,19 +92,32 @@ impl News {
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct NewsKey {
   pub year: u16,
-  pub week_nb: u8,
+  pub month: Month,
+  pub day: u8,
 }
 
-fn file_name_to_week_nb(name: &str) -> Result<u8, NewsError> {
-  // the format is week-NN.md, so the len() must always be 10; NN starts at 5 and ends at 6
-  if name.len() != 10 {
-    return Err(NewsError::CannotParseWeek(name.to_owned()));
+impl NewsKey {
+  pub fn to_path(&self, root: impl AsRef<Path>) -> PathBuf {
+    PathBuf::from(format!(
+      "{root}/{year}/{month}/{day:02}.md",
+      root = root.as_ref().display(),
+      year = self.year,
+      month = self.month,
+      day = self.day
+    ))
+  }
+}
+
+fn file_name_to_day(name: &str) -> Result<u8, NewsError> {
+  // the format is NN.md, so the len() must always be 5
+  if name.len() != 5 {
+    return Err(NewsError::CannotParseDay(name.to_owned()));
   }
 
-  let nn = &name[5..=6];
+  let nn = &name[0..2];
 
   nn.parse()
-    .map_err(|_| NewsError::CannotParseWeek(name.to_owned()))
+    .map_err(|_| NewsError::CannotParseDay(name.to_owned()))
 }
 
 #[derive(Debug)]
@@ -103,34 +148,46 @@ impl NewsStore {
   pub fn populate_from_root(&mut self) -> Result<(), NewsError> {
     for entry in fs::read_dir(&self.root_path)? {
       if let Ok(entry) = entry {
-        log::debug!("traversing {}", entry.path().display());
+        log::debug!("traversing year {}", entry.path().display());
 
         if entry.path().is_dir() {
           let year = entry
             .file_name()
             .to_str()
             .and_then(|name| name.parse().ok())
-            .ok_or(NewsError::CannotParseYear(format!(
-              "{:?}",
-              entry.file_name()
-            )))?;
+            .ok_or_else(|| NewsError::CannotParseYear(format!("{:?}", entry.file_name())))?;
 
-          for week_entry in fs::read_dir(entry.path())? {
-            if let Ok(week_entry) = week_entry {
-              log::debug!("found week file {}", week_entry.path().display());
+          for month_entry in fs::read_dir(entry.path())? {
+            if let Ok(month_entry) = month_entry {
+              log::debug!("traversing month {}", month_entry.path().display());
 
-              if week_entry.path().is_file() {
-                let week_nb = week_entry
+              if month_entry.path().is_dir() {
+                let month: Month = month_entry
                   .file_name()
                   .to_str()
-                  .ok_or(NewsError::CannotParseWeek(format!(
-                    "{:?}",
-                    week_entry.file_name()
-                  )))
-                  .and_then(file_name_to_week_nb)?;
-                let key = NewsKey { year, week_nb };
+                  .and_then(|name| name.parse().ok())
+                  .ok_or_else(|| {
+                    NewsError::CannotParseMonth(format!("{:?}", month_entry.file_name()))
+                  })?;
 
-                self.update(key)?;
+                for day_entry in fs::read_dir(month_entry.path())? {
+                  if let Ok(day_entry) = day_entry {
+                    log::debug!("found day {}", day_entry.path().display());
+
+                    if day_entry.path().is_file() {
+                      let day = day_entry
+                        .file_name()
+                        .to_str()
+                        .ok_or_else(|| {
+                          NewsError::CannotParseDay(format!("{:?}", day_entry.file_name()))
+                        })
+                        .and_then(file_name_to_day)?;
+
+                      let key = NewsKey { year, month, day };
+                      let _ = self.update(key)?;
+                    }
+                  }
+                }
               }
             }
           }
@@ -145,14 +202,9 @@ impl NewsStore {
   ///
   /// If some HTML was already present for that key, it is returned.
   pub fn update(&mut self, key: NewsKey) -> Result<Option<News>, NewsError> {
-    let path = format!(
-      "{}/{}/week-{:02}.md",
-      self.root_path.display(),
-      key.year,
-      key.week_nb
-    );
+    let path = key.to_path(&self.root_path);
 
-    log::debug!("updating week key: {:?} (path={})", key, path);
+    log::debug!("updating news key: {:?} (path={})", key, path.display());
 
     let news = News::load_from_md(path)?;
     let previous_news = self.news.insert(key, news);
