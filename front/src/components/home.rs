@@ -1,13 +1,9 @@
-use chrono::Utc;
 use reqwasm::http::Request;
-use std::{
-  cmp::Reverse,
-  sync::{Arc, RwLock},
-};
+use std::cmp::Reverse;
 use twin::news::NewsKey;
 use yew::{html, Component};
 
-pub struct HomeComponent {
+pub struct Home {
   keys: Vec<NewsKey>,
 }
 
@@ -16,7 +12,7 @@ pub enum Msg {
   GotNewsKeys(Vec<NewsKey>),
 }
 
-impl Component for HomeComponent {
+impl Component for Home {
   type Message = Msg;
 
   type Properties = ();
@@ -34,7 +30,7 @@ impl Component for HomeComponent {
       Msg::GotNewsKeys(keys)
     });
 
-    HomeComponent { keys: Vec::new() }
+    Home { keys: Vec::new() }
   }
 
   fn view(&self, _ctx: &yew::Context<Self>) -> yew::Html {
