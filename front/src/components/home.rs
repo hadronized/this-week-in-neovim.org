@@ -114,7 +114,7 @@ impl Component for Home {
           <p class="block">
             { "You have noticed something missing that you saw lately? Do not keep the candies for yourself and please feel free to
             share with us! You can open a PR at "}
-            <a href="https://github.com/phaazon/this-week-in-neovim-contents">{ "this-week-in-neggovim-contents" }</a>
+            <a href="https://github.com/phaazon/this-week-in-neovim-contents">{ "this-week-in-neovim-contents" }</a>
             {"."}
           </p>
 
