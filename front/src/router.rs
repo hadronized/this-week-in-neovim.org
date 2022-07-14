@@ -54,7 +54,7 @@ impl Route {
         <footer class="footer has-text-centered">
           <p class="block">
             { "Made by " }
-            <a href={"https://github.com/phaazon"}>{ "Dimitri @phaazon Sabadie" }</a>
+            <a href={"https://github.com/phaazon"}>{ "@phaazon" }</a>
             { " and contributors. " }
             <a href="https://github.com/phaazon/this-week-in-neovim.org/blob/master/LICENSE">
               { now.year() }
