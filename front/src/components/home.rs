@@ -36,9 +36,16 @@ impl Component for Home {
   fn view(&self, _ctx: &yew::Context<Self>) -> yew::Html {
     let mut iter = self.keys.iter();
     let first = iter.next().map(|key| {
+      let href = format!("/{}/{}", key.year, key.week_nb);
       html! {
-        <li>{ key.year } { " #" } { key.week_nb } { " " }
-          <a href={"/latest"}>
+        <li>
+          <a href={ href }>
+            { key.year } { " #" } { key.week_nb }
+          </a>
+
+          { " " }
+
+          <a href="/latest">
             <span class={"tag is-link"}>{ "latest" }</span>
           </a>
         </li>
@@ -61,19 +68,53 @@ impl Component for Home {
 
     html! {
       <div>
-        <div class={"has-text-centered"}>
+        <div class="container section has-text-justified">
+          <p class="block has-text-justified">{"
+            This Week In Neovim is a hand-crafted weekly newsletter gathering everything that has happened in the past week around Neovim Core and
+            in the Neovim Plugin ecosystem. Each weekly news is then separated into two main categories: Core and Plugins.
+          "}</p>
+
+          <p class="block has-text-justified">{"
+            The Core part is about the changes in Neovim itself, whether it is about the nightly (main development branch) or the public stable
+            release.
+          "}</p>
+
+          <p class="block has-text-justified">{"
+            The Plugin part is the result of skimming main communication sources, such as "} <a href="https://www.reddit.com/r/neovim">{ "Reddit" }</a> {",
+            various GitHub projects, embedded help Neovim manuals and others. It is also a contribution-based process where people can open PRs and issues
+            to contribute their findings.
+          "}</p>
+
+          <p class="block has-text-justified">{"
+            More on all that in the "} <a href="#want-to-contribute">{ "contributing section" }</a> {".
+          "}</p>
+        </div>
+
+        <div class="container section has-text-centered">
           <ul>
             { news_list }
           </ul>
         </div>
 
-        <div class={"section"}>
-          <h1>{ "Want to contribute?" }</h1>
+        <div class="container section has-text-justified">
+          <h1 class="title has-text-link" id="want-to-contribute">
+            <a href="#want-to-contribute">
+              { " Want to contribute?" }
+            </a>
+          </h1>
 
-          <p>{ "You have noticed something missing that you saw lately? Do not keep the candies for yourself and please feel free to
-          share with us! You can open a PR at https://github.com/phaazon/this-week-in-rust-contents." }</p>
+          <p class="block">
+            { "You have noticed something missing that you saw lately? Do not keep the candies for yourself and please feel free to
+            share with us! You can open a PR at "}
+            <a href="https://github.com/phaazon/this-week-in-neovim-contents">{ "this-week-in-neggovim-contents" }</a>
+            {"."}
+          </p>
 
-          <p>{ "Feel free to read https://github.com/phaazon/this-week-in-rust-contents/README.md#how-to-contribute to get started." }</p>
+          <p class="block">
+            { "Feel free to read "}
+            <a href="https://github.com/phaazon/this-week-in-neovim-contents/blob/master/README.md#how-to-contribute">{ "how to contribute" }</a>
+            { " to get started." }
+          </p>
         </div>
       </div>
     }

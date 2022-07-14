@@ -53,7 +53,7 @@ impl Component for Week {
 
   fn view(&self, _ctx: &yew::Context<Self>) -> yew::Html {
     html! {
-      <div ref={self.node_ref.clone()} />
+      <div class="container" ref={self.node_ref.clone()} />
     }
   }
 

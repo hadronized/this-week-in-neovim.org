@@ -1,0 +1,7 @@
+.unhide-on-hover {
+  display: none;
+}
+
+.unhide-on-hover :hover {
+  display: block;
+}

@@ -96,10 +96,14 @@ fn watch_state(config: &Config, state: NewsState) {
   let (sx, rx) = mpsc::channel();
   let mut watcher = notify::watcher(sx, Duration::from_millis(200)).expect("state watcher");
   watcher
-    .watch(&config.news_root, notify::RecursiveMode::NonRecursive)
+    .watch(&config.news_root, notify::RecursiveMode::Recursive)
     .expect("watching news root directory");
 
+  log::debug!("watching directory {}", config.news_root.display());
+
   for event in rx {
+    log::debug!("event: {:?}", event);
+
     match event {
       notify::DebouncedEvent::Create(_path) | notify::DebouncedEvent::Write(_path) => {
         // FIXME: suboptimal; we should be parsing path and use NewsStore::update instead of recomputing everything
@@ -116,4 +120,6 @@ fn watch_state(config: &Config, state: NewsState) {
       _ => (),
     }
   }
+
+  log::debug!("watch state exited");
 }
