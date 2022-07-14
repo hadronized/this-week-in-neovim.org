@@ -73,18 +73,18 @@ impl Component for Home {
     html! {
       <div>
         <div class="container section has-text-justified">
-          <p class="block has-text-justified">{"
-            This Week In Neovim is a hand-crafted weekly newsletter gathering everything that has happened in the past week around Neovim Core and
-            in the Neovim Plugin ecosystem. Each weekly news is then separated into two main categories: Core and Plugins.
+          <p class="block has-text-justified">
+            <b>{"This Week In Neovim"}</b> {" is a hand-crafted weekly newsletter gathering everything that has happened in the past week around Neovim Core and
+            in the Neovim Plugin ecosystem. Each weekly news is then separated into two main categories: "} <b>{"Core"}</b> {" and "} <b>{"Plugins"}</b> {".
           "}</p>
 
           <p class="block has-text-justified">{"
-            The Core part is about the changes in Neovim itself, whether it is about the nightly (main development branch) or the public stable
+            The "} <b>{"Core"}</b> {" part is about the changes in Neovim itself, whether it is about the nightly (main development branch) or the public stable
             release.
           "}</p>
 
           <p class="block has-text-justified">{"
-            The Plugin part is the result of skimming main communication sources, such as "} <a href="https://www.reddit.com/r/neovim">{ "Reddit" }</a> {",
+            The "} <b>{"Plugin"}</b> {" part is the result of skimming main communication sources, such as "} <a href="https://www.reddit.com/r/neovim">{ "Reddit" }</a> {",
             various GitHub projects, embedded help Neovim manuals and others. It is also a contribution-based process where people can open PRs and issues
             to contribute their findings.
           "}</p>
@@ -92,6 +92,10 @@ impl Component for Home {
           <p class="block has-text-justified">{"
             More on all that in the "} <a href="#want-to-contribute">{ "contributing section" }</a> {".
           "}</p>
+
+          <p class="block">
+            { "There are currently " } <b>{ keys_len}</b> { " weekly news!" }
+          </p>
         </div>
 
         <div class="container section has-text-centered">
