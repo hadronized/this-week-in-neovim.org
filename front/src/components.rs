@@ -1,2 +1,2 @@
 pub mod home;
-pub mod latest;
+pub mod week;

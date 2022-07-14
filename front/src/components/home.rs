@@ -37,28 +37,30 @@ impl Component for Home {
     let mut iter = self.keys.iter();
     let first = iter.next().map(|key| {
       html! {
-        <li>{ key.year } { " #" } { key.week_nb } <span class={"tag"}>{ "latest" }</span></li>
+        <li>{ key.year } { " #" } { key.week_nb } { " " }
+          <a href={"/latest"}>
+            <span class={"tag is-link"}>{ "latest" }</span>
+          </a>
+        </li>
       }
     });
 
     let news_list: Vec<_> = first
       .into_iter()
       .chain(iter.map(|key| {
+        let href = format!("/{}/{}", key.year, key.week_nb);
         html! {
-          <li>{ key.year } { " #" } { key.week_nb }</li>
+          <li>
+            <a href={ href }>
+              { key.year } { " #" } { key.week_nb }
+            </a>
+          </li>
         }
       }))
       .collect();
 
     html! {
       <div>
-        <section class={"hero is-success"}>
-          <div class={"hero-body has-text-centered"}>
-            <h1 class={"title"}>{ "This Week in Neovim" }</h1>
-          </div>
-
-        </section>
-
         <div class={"has-text-centered"}>
           <ul>
             { news_list }
@@ -73,51 +75,6 @@ impl Component for Home {
 
           <p>{ "Feel free to read https://github.com/phaazon/this-week-in-rust-contents/README.md#how-to-contribute to get started." }</p>
         </div>
-
-        <footer class={"footer has-text-centered"}>
-          <p>
-            { "Made by " }
-            <a href={"https://github.com/phaazon"}>{ "Dimitri @phaazon Sabadie" }</a>
-            { " and contributors." }
-          </p>
-          <p>
-            <a href={"https://github.com/phaazon/this-week-in-neovim.org"}>
-              <span class={"icon-text has-text-link"}>
-                <span class={"icon"}>
-                  <i class={"fa-brands fa-github"}></i>
-                </span>
-                <span>{ "TWiN" }</span>
-              </span>
-            </a>
-            { " | " }
-            <a href={"https://rust-lang.org"}>
-              <span class={"icon-text has-text-link"}>
-                <span class={"icon"}>
-                  <i class={"fa-brands fa-rust"}></i>
-                </span>
-                <span>{ "Rust" }</span>
-              </span>
-            </a>
-            { " | " }
-            <a href={"https://rocket.rs"}>
-              <span class={"icon-text has-text-link"}>
-                <span class={"icon"}>
-                  <i class={"fa-solid fa-shuttle-space"}></i>
-                </span>
-                <span>{ "rocket-rs" }</span>
-              </span>
-            </a>
-            { " | " }
-            <a href={"https://yew.rs"}>
-              <span class={"icon-text has-text-link"}>
-                <span class={"icon"}>
-                  <i class={"fa-solid fa-y"}></i>
-                </span>
-                <span>{ "Yew" }</span>
-              </span>
-            </a>
-          </p>
-        </footer>
       </div>
     }
   }
