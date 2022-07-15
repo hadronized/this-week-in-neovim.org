@@ -63,9 +63,14 @@ impl From<io::Error> for NewsError {
   }
 }
 
-#[derive(Debug)]
+/// A weekly news.
+///
+/// It contains the HTML version of the news, as well as optional previous news and next news (keys).
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct News {
   pub html: String,
+  pub prev: Option<NewsKey>,
+  pub next: Option<NewsKey>,
 }
 
 impl News {
@@ -76,7 +81,11 @@ impl News {
     let mut html = String::new();
     pulldown_cmark::html::push_html(&mut html, parser);
 
-    News { html }
+    News {
+      html,
+      prev: None,
+      next: None,
+    }
   }
 
   pub fn load_from_md(path: impl AsRef<Path>) -> Result<Self, NewsError> {
@@ -195,6 +204,8 @@ impl NewsStore {
       }
     }
 
+    self.update_prev_next();
+
     Ok(())
   }
 
@@ -210,6 +221,30 @@ impl NewsStore {
     let previous_news = self.news.insert(key, news);
 
     Ok(previous_news)
+  }
+
+  /// Traverse the news and set the prev / next news keys.
+  pub fn update_prev_next(&mut self) {
+    if self.news.len() < 2 {
+      return;
+    }
+
+    let mut keys: Vec<_> = self.news.iter_mut().collect();
+    let keys_len = keys.len();
+    keys.sort_by_key(|(k, _)| **k);
+
+    // the first news doesn’t have any previous and the last news doesn’t have any next
+    keys[0].1.prev = None;
+    keys[0].1.next = Some(keys[1].0.clone());
+    keys[keys_len - 1].1.prev = Some(keys[keys_len - 2].0.clone());
+    keys[keys_len - 1].1.next = None;
+
+    for i in 1..keys_len - 1 {
+      let prev = keys[i - 1].0.clone();
+      let next = keys[i + 1].0.clone();
+      keys[i].1.prev = Some(prev);
+      keys[i].1.next = Some(next);
+    }
   }
 }
 

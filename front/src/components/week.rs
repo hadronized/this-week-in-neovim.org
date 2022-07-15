@@ -1,16 +1,17 @@
 use chrono::{Date, Datelike, TimeZone as _, Utc};
 use reqwasm::http::Request;
-use twin::news::Month;
+use twin::news::{Month, News, NewsKey};
 use yew::{html, Component, Html, NodeRef, Properties};
 
 pub struct Week {
-  date: Date<Utc>,
   node_ref: NodeRef,
+  prev_key: Option<NewsKey>,
+  next_key: Option<NewsKey>,
 }
 
 #[derive(Debug)]
 pub enum Msg {
-  GotWeek(Option<String>),
+  GotWeek(Option<News>),
 }
 
 #[derive(Eq, Hash, PartialEq, Properties)]
@@ -44,65 +45,77 @@ impl Component for Week {
         .send()
         .await
         .unwrap()
-        .text()
+        .json()
         .await
         .unwrap();
 
       Msg::GotWeek(Some(news))
     });
 
-    let date = Utc.ymd(props.year as _, props.month as _, props.day as _);
-
     Self {
-      date,
       node_ref: NodeRef::default(),
+      prev_key: None,
+      next_key: None,
     }
   }
 
-  fn view(&self, _ctx: &yew::Context<Self>) -> Html {
-    let date = &self.date;
-    let pred_date = date.pred();
-    let pred_month = month_from_date(&pred_date);
-    let succ_date = date.succ();
-    let succ_month = month_from_date(&succ_date);
+  fn view(&self, ctx: &yew::Context<Self>) -> Html {
+    let props = ctx.props();
+
+    let prev_date_html = if let Some(prev) = self.prev_key {
+      html! {
+        <p class="subtitle">
+          <a href={ format!("/{}/{}/{}", prev.year, prev.month, prev.day) }>
+            <span class="icon-text">
+              <span class="icon">
+                <i class="fa-solid fa-angle-left"></i>
+              </span>
+              <span>
+                { prev.day } {" "} { prev.month } {" "} { prev.year }
+              </span>
+            </span>
+          </a>
+        </p>
+
+      }
+    } else {
+      html! {}
+    };
+
+    let next_date_html = if let Some(next) = self.next_key {
+      html! {
+        <p class="subtitle">
+          <a href={ format!("/{}/{}/{}", next.year, next.month, next.day) }>
+            <span class="icon-text">
+              <span>
+                { next.day } {" "} { next.month } {" "} { next.year }
+              </span>
+              <span class="icon">
+                <i class="fa-solid fa-angle-right"></i>
+              </span>
+            </span>
+          </a>
+        </p>
+      }
+    } else {
+      html! {}
+    };
 
     html! {
       <div class="section container">
         <nav class="level">
           <div class="level-item">
-            <p class="subtitle">
-              <a href={ format!("/{}/{}/{}", pred_date.year(), pred_month, pred_date.day()) }>
-                <span class="icon-text">
-                  <span class="icon">
-                    <i class="fa-solid fa-angle-left"></i>
-                  </span>
-                  <span>
-                    { pred_date.day()} {" "} { pred_month } {" "} { pred_date.year() }
-                  </span>
-                </span>
-              </a>
-            </p>
+            { prev_date_html }
           </div>
 
           <div class="level-item">
             <p class="subtitle has-text-grey-light">
-              { date.day()} {" "} { month_from_date(&date) } {" "} { date.year() }
+              { props.day } {" "} { props.month } {" "} { props.year }
             </p>
           </div>
 
           <div class="level-item">
-            <p class="subtitle">
-              <a href={ format!("/{}/{}/{}", succ_date.year(), succ_month, succ_date.day()) }>
-                <span class="icon-text">
-                  <span>
-                    { succ_date.day()} {" "} { succ_month } {" "} { succ_date.year() }
-                  </span>
-                  <span class="icon">
-                    <i class="fa-solid fa-angle-right"></i>
-                  </span>
-                </span>
-              </a>
-            </p>
+            { next_date_html }
           </div>
         </nav>
 
@@ -112,35 +125,14 @@ impl Component for Week {
   }
 
   fn update(&mut self, _ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
-    let html = match msg {
-      Msg::GotWeek(Some(html)) => html,
-      _ => "nope".to_owned(),
-    };
+    if let Msg::GotWeek(Some(news)) = msg {
+      let el = self.node_ref.cast::<web_sys::Element>().unwrap();
+      el.set_inner_html(&news.html);
 
-    let el = self.node_ref.cast::<web_sys::Element>().unwrap();
-    el.set_inner_html(&html);
-    // inject_tags_with_attributes(el);
+      self.prev_key = news.prev;
+      self.next_key = news.next;
+    }
 
     true
-  }
-}
-
-/// Because chrono doesn’t have something smart enough without requiring pulling a fucking dep (num-traits), we do this
-/// here because why not.
-fn month_from_date(date: &Date<Utc>) -> &'static str {
-  match date.month() {
-    0 => "Jan",
-    1 => "Feb",
-    2 => "Mar",
-    3 => "Apr",
-    4 => "May",
-    5 => "Jun",
-    6 => "Jul",
-    7 => "Aug",
-    8 => "Sep",
-    9 => "Oct",
-    10 => "Nov",
-    11 => "Dec",
-    _ => "N/A",
   }
 }
