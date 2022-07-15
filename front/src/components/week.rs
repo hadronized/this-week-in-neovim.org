@@ -1,7 +1,8 @@
 use reqwasm::http::Request;
 
 use twin::news::Month;
-use yew::{html, Component, NodeRef, Properties};
+use web_sys::{Element, Node};
+use yew::{html, virtual_dom::VNode, Component, Html, NodeRef, Properties};
 
 pub struct Week {
   node_ref: NodeRef,
@@ -55,9 +56,46 @@ impl Component for Week {
     }
   }
 
-  fn view(&self, _ctx: &yew::Context<Self>) -> yew::Html {
+  fn view(&self, ctx: &yew::Context<Self>) -> Html {
+    let props = ctx.props();
     html! {
-      <div class="container" ref={self.node_ref.clone()} />
+      <div class="section container">
+        <nav class="level">
+          <div class="level-item">
+            <p class="subtitle">
+              <a href="/">
+                <span class="icon-text">
+                  <span class="icon">
+                    <i class="fa-solid fa-angle-left"></i>
+                  </span>
+                  <span>{"Previous day"}</span>
+                </span>
+              </a>
+            </p>
+          </div>
+
+          <div class="level-item">
+            <p class="subtitle has-text-grey-light">
+              { props.day} {" "} { props.month } {" "} { props.year }
+            </p>
+          </div>
+
+          <div class="level-item">
+            <p class="subtitle">
+              <a href="/">
+                <span class="icon-text">
+                  <span>{"Next day"}</span>
+                  <span class="icon">
+                    <i class="fa-solid fa-angle-right"></i>
+                  </span>
+                </span>
+              </a>
+            </p>
+          </div>
+        </nav>
+
+        <div class="content" ref={self.node_ref.clone()} />
+      </div>
     }
   }
 
@@ -67,12 +105,42 @@ impl Component for Week {
       _ => "nope".to_owned(),
     };
 
-    self
-      .node_ref
-      .cast::<web_sys::Element>()
-      .unwrap()
-      .set_inner_html(&html);
+    let el = self.node_ref.cast::<web_sys::Element>().unwrap();
+    el.set_inner_html(&html);
+    // inject_tags_with_attributes(el);
 
     true
+  }
+}
+
+/// Iterate on tags and add the approriate classes we might want. For instance, raw HTML (coming from a Markdown
+/// document) is unlikely to have .title, .block, etc. etc. so we are going to automatically add them here.
+fn inject_tags_with_attributes(el: Element) {
+  match el.tag_name().as_str() {
+    "H1" => {
+      let _ = el.set_attribute("class", "title");
+    }
+
+    "H2" => {
+      let _ = el.set_attribute("class", "subtitle");
+    }
+
+    "P" => {
+      let _ = el.set_attribute("class", "has-text-justified");
+    }
+
+    "BLOCKQUOTE" => {
+      let _ = el.set_attribute("class", "has-text-justified");
+    }
+
+    _ => (),
+  }
+
+  let children = el.children();
+  for i in 0..children.length() {
+    let child = children.get_with_index(i);
+    if let Some(child) = child {
+      inject_tags_with_attributes(child);
+    }
   }
 }

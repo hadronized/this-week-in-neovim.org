@@ -20,4 +20,4 @@ yew = "0.19.3"
 yew-router = "0.16.0"
 wasm-bindgen-futures = "0.4.31"
 wasm-logger = "0.2.0"
-web-sys = "0.3.58"
+web-sys = { version = "0.3.58", features = ["Element", "HtmlCollection"] }
