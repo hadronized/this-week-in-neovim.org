@@ -1,9 +1,7 @@
-use chrono::{Date, DateTime, Datelike, TimeZone as _, Utc};
+use chrono::{Date, Datelike, TimeZone as _, Utc};
 use reqwasm::http::Request;
-
 use twin::news::Month;
-use web_sys::{Element, Node};
-use yew::{html, virtual_dom::VNode, Component, Html, NodeRef, Properties};
+use yew::{html, Component, Html, NodeRef, Properties};
 
 pub struct Week {
   date: Date<Utc>,
