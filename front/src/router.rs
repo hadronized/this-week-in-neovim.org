@@ -61,6 +61,7 @@ impl Route {
               { " BSD-3 New Clause " }
             </a>
           </p>
+
           <p class="block">
             <a href="https://github.com/phaazon/this-week-in-neovim.org">
               <span class="icon-text has-text-link">
@@ -95,6 +96,17 @@ impl Route {
                   <i class="fa-solid fa-y"></i>
                 </span>
                 <span>{ "Yew" }</span>
+              </span>
+            </a>
+            { " | " }
+            <a href="/api/rss">
+              <span class="icon-text has-text-danger">
+                <span class="icon">
+                  <i class="fa-solid fa-rss"></i>
+                </span>
+                <span>
+                { "RSS feed" }
+                </span>
               </span>
             </a>
           </p>

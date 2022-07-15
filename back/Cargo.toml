@@ -17,6 +17,7 @@ log = "0.4.17"
 notify = "4.0.17"
 pulldown-cmark = "0.9.1"
 rocket = { version = "0.5.0-rc.2", features = ["json"] }
+rss = "2"
 serde = "1"
 toml = "0.5.9"
 twin = { version = "0.1", path = "../twin" }

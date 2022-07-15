@@ -1,5 +1,6 @@
 mod api;
 mod config;
+mod rss;
 
 use crate::config::Config;
 use notify::Watcher;
@@ -55,7 +56,10 @@ fn rocket() -> _ {
       rocket::custom(rocket_config)
         .manage(state)
         .manage(backend_state)
-        .mount("/api", routes![api::root, api::latest, api::by_key])
+        .mount(
+          "/api",
+          routes![api::root, api::latest, api::by_key, api::rss],
+        )
         .mount("/", webapp_serve)
         .mount("/", routes![serve_index_html])
     }

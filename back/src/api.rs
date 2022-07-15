@@ -1,7 +1,15 @@
 use std::str::FromStr;
 
-use rocket::{get, request::FromParam, response::status::NotFound, serde::json::Json, State};
+use rocket::{
+  get,
+  request::FromParam,
+  response::{content::RawXml, status::NotFound},
+  serde::json::Json,
+  State,
+};
 use twin::news::{Month, News, NewsKey, NewsState};
+
+use crate::rss::rss_feed;
 
 #[get("/")]
 pub fn root(state: &State<NewsState>) -> Json<Vec<NewsKey>> {
@@ -56,4 +64,12 @@ pub fn by_key(
       day = key.day,
     ))),
   }
+}
+
+#[get("/rss")]
+pub fn rss(state: &State<NewsState>) -> RawXml<String> {
+  let news_store = state.news_store().read().expect("news store");
+  let news = news_store.keys();
+  let feed = rss_feed(news);
+  RawXml(feed.to_string())
 }

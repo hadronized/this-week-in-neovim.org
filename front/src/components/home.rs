@@ -95,6 +95,16 @@ impl Component for Home {
 
           <p class="block">
             { "There are currently " } <b>{ keys_len}</b> { " weekly news!" }
+            <a href="/api/rss">
+              <span class="icon-text has-text-danger">
+                <span class="icon">
+                  <i class="fa-solid fa-rss"></i>
+                </span>
+                <span>
+                { "RSS feed" }
+                </span>
+              </span>
+            </a>
           </p>
         </div>
 
