@@ -1,3 +1,4 @@
+use chrono::{Date, DateTime, Datelike, TimeZone as _, Utc};
 use reqwasm::http::Request;
 
 use twin::news::Month;
@@ -5,6 +6,7 @@ use web_sys::{Element, Node};
 use yew::{html, virtual_dom::VNode, Component, Html, NodeRef, Properties};
 
 pub struct Week {
+  date: Date<Utc>,
   node_ref: NodeRef,
 }
 
@@ -51,24 +53,34 @@ impl Component for Week {
       Msg::GotWeek(Some(news))
     });
 
+    let date = Utc.ymd(props.year as _, props.month as _, props.day as _);
+
     Self {
+      date,
       node_ref: NodeRef::default(),
     }
   }
 
-  fn view(&self, ctx: &yew::Context<Self>) -> Html {
-    let props = ctx.props();
+  fn view(&self, _ctx: &yew::Context<Self>) -> Html {
+    let date = &self.date;
+    let pred_date = date.pred();
+    let pred_month = month_from_date(&pred_date);
+    let succ_date = date.succ();
+    let succ_month = month_from_date(&succ_date);
+
     html! {
       <div class="section container">
         <nav class="level">
           <div class="level-item">
             <p class="subtitle">
-              <a href="/">
+              <a href={ format!("/{}/{}/{}", pred_date.year(), pred_month, pred_date.day()) }>
                 <span class="icon-text">
                   <span class="icon">
                     <i class="fa-solid fa-angle-left"></i>
                   </span>
-                  <span>{"Previous day"}</span>
+                  <span>
+                    { pred_date.day()} {" "} { pred_month } {" "} { pred_date.year() }
+                  </span>
                 </span>
               </a>
             </p>
@@ -76,15 +88,17 @@ impl Component for Week {
 
           <div class="level-item">
             <p class="subtitle has-text-grey-light">
-              { props.day} {" "} { props.month } {" "} { props.year }
+              { date.day()} {" "} { month_from_date(&date) } {" "} { date.year() }
             </p>
           </div>
 
           <div class="level-item">
             <p class="subtitle">
-              <a href="/">
+              <a href={ format!("/{}/{}/{}", succ_date.year(), succ_month, succ_date.day()) }>
                 <span class="icon-text">
-                  <span>{"Next day"}</span>
+                  <span>
+                    { succ_date.day()} {" "} { succ_month } {" "} { succ_date.year() }
+                  </span>
                   <span class="icon">
                     <i class="fa-solid fa-angle-right"></i>
                   </span>
@@ -113,34 +127,22 @@ impl Component for Week {
   }
 }
 
-/// Iterate on tags and add the approriate classes we might want. For instance, raw HTML (coming from a Markdown
-/// document) is unlikely to have .title, .block, etc. etc. so we are going to automatically add them here.
-fn inject_tags_with_attributes(el: Element) {
-  match el.tag_name().as_str() {
-    "H1" => {
-      let _ = el.set_attribute("class", "title");
-    }
-
-    "H2" => {
-      let _ = el.set_attribute("class", "subtitle");
-    }
-
-    "P" => {
-      let _ = el.set_attribute("class", "has-text-justified");
-    }
-
-    "BLOCKQUOTE" => {
-      let _ = el.set_attribute("class", "has-text-justified");
-    }
-
-    _ => (),
-  }
-
-  let children = el.children();
-  for i in 0..children.length() {
-    let child = children.get_with_index(i);
-    if let Some(child) = child {
-      inject_tags_with_attributes(child);
-    }
+/// Because chrono doesn’t have something smart enough without requiring pulling a fucking dep (num-traits), we do this
+/// here because why not.
+fn month_from_date(date: &Date<Utc>) -> &'static str {
+  match date.month() {
+    0 => "Jan",
+    1 => "Feb",
+    2 => "Mar",
+    3 => "Apr",
+    4 => "May",
+    5 => "Jun",
+    6 => "Jul",
+    7 => "Aug",
+    8 => "Sep",
+    9 => "Oct",
+    10 => "Nov",
+    11 => "Dec",
+    _ => "N/A",
   }
 }

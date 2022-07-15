@@ -43,7 +43,7 @@ impl Route {
         <section class="hero is-success">
           <div class="hero-body has-text-centered">
             <a href="/">
-              <h1 class={"title"}>{ "This Week in Neovim" }</h1>
+              <h1 class="title">{ "This Week in Neovim" }</h1>
             </a>
           </div>
 
