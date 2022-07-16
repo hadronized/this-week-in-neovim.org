@@ -24,6 +24,12 @@ pub enum Month {
   Dec,
 }
 
+impl Default for Month {
+  fn default() -> Self {
+    Month::Jan
+  }
+}
+
 impl Display for Month {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     self.serialize(f)
@@ -127,6 +133,12 @@ fn file_name_to_day(name: &str) -> Result<u8, NewsError> {
 
   nn.parse()
     .map_err(|_| NewsError::CannotParseDay(name.to_owned()))
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LatestNews {
+  pub key: NewsKey,
+  pub news: News,
 }
 
 #[derive(Debug)]

@@ -1,5 +1,4 @@
-use std::str::FromStr;
-
+use crate::rss::rss_feed;
 use rocket::{
   get,
   request::FromParam,
@@ -7,9 +6,8 @@ use rocket::{
   serde::json::Json,
   State,
 };
-use twin::news::{Month, News, NewsKey, NewsState};
-
-use crate::rss::rss_feed;
+use std::str::FromStr;
+use twin::news::{LatestNews, Month, News, NewsKey, NewsState};
 
 #[get("/")]
 pub fn root(state: &State<NewsState>) -> Json<Vec<NewsKey>> {
@@ -20,18 +18,15 @@ pub fn root(state: &State<NewsState>) -> Json<Vec<NewsKey>> {
 }
 
 #[get("/latest")]
-pub fn latest(state: &State<NewsState>) -> Result<Json<News>, NotFound<String>> {
+pub fn latest(state: &State<NewsState>) -> Result<Json<LatestNews>, NotFound<String>> {
   let news_store = state.news_store().read().expect("news store");
-  let latest_key = news_store
+  let key = news_store
     .keys()
     .max()
     .ok_or_else(|| NotFound("no latest news available".to_owned()))?;
-  by_key(
-    latest_key.year,
-    MonthParam(latest_key.month),
-    latest_key.day,
-    state,
-  )
+  let Json(news) = by_key(key.year, MonthParam(key.month), key.day, state)?;
+
+  Ok(Json(LatestNews { key: *key, news }))
 }
 
 pub struct MonthParam(Month);

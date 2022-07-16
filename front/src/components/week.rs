@@ -1,8 +1,9 @@
 use reqwasm::http::Request;
-use twin::news::{Month, News, NewsKey};
+use twin::news::{LatestNews, Month, News, NewsKey};
 use yew::{html, Component, Html, NodeRef, Properties};
 
 pub struct Week {
+  date: WeekProps,
   node_ref: NodeRef,
   prev_key: Option<NewsKey>,
   next_key: Option<NewsKey>,
@@ -10,15 +11,16 @@ pub struct Week {
 
 #[derive(Debug)]
 pub enum Msg {
-  GotWeek(Option<News>),
+  Latest(LatestNews),
+  Week(News),
 }
 
-#[derive(Eq, Hash, PartialEq, Properties)]
+#[derive(Clone, Default, Eq, Hash, PartialEq, Properties)]
 pub struct WeekProps {
   #[prop_or_default]
   pub year: u16,
 
-  #[prop_or(Month::Jan)]
+  #[prop_or_default]
   pub month: Month,
 
   #[prop_or_default]
@@ -31,16 +33,24 @@ impl Component for Week {
   type Properties = WeekProps;
 
   fn create(ctx: &yew::Context<Self>) -> Self {
-    let props = ctx.props();
-
-    let url = if props.year == 0 {
-      "api/latest".to_owned()
-    } else {
-      format!("/api/{}/{}/{}", props.year, props.month, props.day)
-    };
+    let props: WeekProps = ctx.props().clone();
 
     ctx.link().send_future(async move {
-      let news = Request::get(&url)
+      if props.year == 0 {
+        let latest_news = Request::get("api/latest")
+          .send()
+          .await
+          .unwrap()
+          .json()
+          .await
+          .unwrap();
+
+        Msg::Latest(latest_news)
+      } else {
+        let news = Request::get(&format!(
+          "/api/{}/{}/{}",
+          props.year, props.month, props.day
+        ))
         .send()
         .await
         .unwrap()
@@ -48,19 +58,19 @@ impl Component for Week {
         .await
         .unwrap();
 
-      Msg::GotWeek(Some(news))
+        Msg::Week(news)
+      }
     });
 
     Self {
+      date: props,
       node_ref: NodeRef::default(),
       prev_key: None,
       next_key: None,
     }
   }
 
-  fn view(&self, ctx: &yew::Context<Self>) -> Html {
-    let props = ctx.props();
-
+  fn view(&self, _ctx: &yew::Context<Self>) -> Html {
     let prev_date_html = if let Some(prev) = self.prev_key {
       html! {
         <p class="subtitle">
@@ -109,7 +119,7 @@ impl Component for Week {
 
           <div class="level-item">
             <p class="subtitle has-text-grey-light">
-              { props.day } {" "} { props.month } {" "} { props.year }
+              { self.date.day } {" "} { self.date.month } {" "} { self.date.year }
             </p>
           </div>
 
@@ -124,12 +134,28 @@ impl Component for Week {
   }
 
   fn update(&mut self, _ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
-    if let Msg::GotWeek(Some(news)) = msg {
-      let el = self.node_ref.cast::<web_sys::Element>().unwrap();
-      el.set_inner_html(&news.html);
+    match msg {
+      Msg::Week(news) => {
+        let el = self.node_ref.cast::<web_sys::Element>().unwrap();
+        el.set_inner_html(&news.html);
 
-      self.prev_key = news.prev;
-      self.next_key = news.next;
+        self.prev_key = news.prev;
+        self.next_key = news.next;
+      }
+
+      Msg::Latest(latest_news) => {
+        let el = self.node_ref.cast::<web_sys::Element>().unwrap();
+        el.set_inner_html(&latest_news.news.html);
+
+        self.prev_key = latest_news.news.prev;
+        self.next_key = None;
+
+        self.date = WeekProps {
+          year: latest_news.key.year,
+          month: latest_news.key.month,
+          day: latest_news.key.day,
+        };
+      }
     }
 
     true
