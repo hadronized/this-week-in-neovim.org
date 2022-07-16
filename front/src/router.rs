@@ -1,4 +1,4 @@
-use crate::components::{home::Home, week::Week};
+use crate::components::{home::Home, not_found::NotFound, week::Week};
 use chrono::{Datelike, Utc};
 use twin::news::Month;
 use yew::{html, Html};
@@ -29,7 +29,7 @@ impl Route {
 
       Route::Week { year, month, day } => html! { <Week year={year} month={month} day={day} /> },
 
-      Route::NotFound => todo!(),
+      Route::NotFound => html! { <NotFound /> },
     };
 
     Self::wrap_component(component)
