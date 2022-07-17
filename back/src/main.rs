@@ -1,5 +1,6 @@
 mod api;
 mod config;
+mod routes;
 mod rss;
 
 use crate::config::Config;
@@ -60,8 +61,8 @@ fn rocket() -> _ {
           "/api",
           routes![api::root, api::latest, api::by_key, api::rss],
         )
-        .mount("/", webapp_serve)
-        .mount("/", routes![serve_index_html])
+        // .mount("/", webapp_serve)
+        .mount("/", routes![routes::home::home])
     }
 
     Err(err) => {
