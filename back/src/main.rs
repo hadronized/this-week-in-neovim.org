@@ -6,7 +6,7 @@ mod rss;
 
 use crate::config::Config;
 use notify::Watcher;
-use rocket::{catchers, launch, log::LogLevel};
+use rocket::{catchers, fairing::AdHoc, launch, log::LogLevel};
 use std::{
   net::{IpAddr, Ipv4Addr},
   process::exit,
@@ -25,13 +25,18 @@ fn rocket() -> _ {
       rocket_config.port = config.port;
       rocket_config.log_level = LogLevel::Debug;
 
+      let (ignition_tx, ignition_rx) = mpsc::sync_channel(0);
       let state = NewsState::new(&config.news_root);
-      run_state(&config, state.clone());
+      run_state(ignition_rx, &config, state.clone());
 
       rocket::custom(rocket_config)
         .manage(state)
         .register("/", catchers![routes::not_found::not_found])
-        // .mount("/", webapp_serve)
+        .attach(AdHoc::on_liftoff("state_sync", move |_| {
+          Box::pin(async move {
+            ignition_tx.send(()).expect("state sync");
+          })
+        }))
         .mount("/", routes::routes())
     }
 
@@ -42,10 +47,12 @@ fn rocket() -> _ {
   }
 }
 
-fn run_state(config: &Config, state: NewsState) {
+fn run_state(ignition_rx: mpsc::Receiver<()>, config: &Config, state: NewsState) {
   let config = config.clone();
   let _ = thread::spawn(move || {
-    thread::sleep(Duration::from_secs(1)); // just wait a bit until rocket is fully initialized
+    ignition_rx
+      .recv_timeout(Duration::from_secs(5))
+      .expect("timeout while waiting for rocket to launch");
 
     if let Err(err) = state
       .news_store()
