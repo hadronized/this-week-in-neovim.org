@@ -1,7 +1,3 @@
 **/target
 Cargo.lock
 **/dist
-**/node_modules
-**/package-lock.json
-**/pkg
-**/yarn.lock
