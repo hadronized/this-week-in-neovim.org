@@ -1,8 +1,6 @@
-mod api;
 mod config;
 mod html_wrapper;
 mod routes;
-mod rss;
 
 use crate::config::Config;
 use notify::Watcher;

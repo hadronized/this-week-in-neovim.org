@@ -1,8 +1,16 @@
+use rocket::{get, response::content::RawXml, State};
 use std::cmp::Reverse;
-use twin::news::{NewsKey, NewsStore, News};
+use twin::news::{News, NewsKey, NewsState, NewsStore};
 
-pub fn news_to_rss(key: &NewsKey, content: Option<&News>) -> rss::Item {
-  rss::ItemBuilder::default()
+#[get("/rss")]
+pub fn rss(state: &State<NewsState>) -> RawXml<String> {
+  let news_store = state.news_store().read().expect("news store");
+  let feed = rss_feed(&news_store);
+  RawXml(feed.to_string())
+}
+
+pub fn news_to_rss(key: &NewsKey, content: Option<&News>) -> ::rss::Item {
+  ::rss::ItemBuilder::default()
     .author(Some(
       "Dimitri 'phaazon' Sabadie <dimitri.sabadie@gmail.com>".to_owned(),
     ))
@@ -15,15 +23,16 @@ pub fn news_to_rss(key: &NewsKey, content: Option<&News>) -> rss::Item {
       key.year, key.month, key.day
     )))
     .title(Some(format!("{} {} {}", key.day, key.month, key.year)))
-	.description(match content {
-		Some(item) => Some(item.html.to_owned()),
-		None => None,
-	})
+    .description(match content {
+      Some(item) => Some(item.html.to_owned()),
+      None => None,
+    })
     .build()
 }
 
-pub fn rss_feed(news_store: &NewsStore) -> rss::Channel {
-  let mut items: Vec<_> = news_store.keys()
+pub fn rss_feed(news_store: &NewsStore) -> ::rss::Channel {
+  let mut items: Vec<_> = news_store
+    .keys()
     .into_iter()
     .map(|key| (key, news_to_rss(key, news_store.get(key))))
     .collect();
@@ -35,7 +44,7 @@ pub fn rss_feed(news_store: &NewsStore) -> rss::Channel {
 
   let items: Vec<_> = items.into_iter().map(|(_, news)| news).collect();
 
-  rss::ChannelBuilder::default()
+  ::rss::ChannelBuilder::default()
     .title("This Week In Neovim".to_owned())
     .link("https://this-week-in-neovim.org".to_owned())
     .items(items)
