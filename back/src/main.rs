@@ -6,7 +6,7 @@ mod rss;
 
 use crate::config::Config;
 use notify::Watcher;
-use rocket::{catchers, launch, log::LogLevel, routes};
+use rocket::{catchers, launch, log::LogLevel};
 use std::{
   net::{IpAddr, Ipv4Addr},
   process::exit,
@@ -31,12 +31,8 @@ fn rocket() -> _ {
       rocket::custom(rocket_config)
         .manage(state)
         .register("/", catchers![routes::not_found::not_found])
-        .mount(
-          "/api",
-          routes![api::root, api::latest, api::by_key, api::rss],
-        )
         // .mount("/", webapp_serve)
-        .mount("/", routes![routes::home::home])
+        .mount("/", routes::routes())
     }
 
     Err(err) => {
