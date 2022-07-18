@@ -1,7 +1,7 @@
 use std::cmp::Reverse;
-use twin::news::NewsKey;
+use twin::news::{NewsKey, NewsStore, News};
 
-pub fn news_to_rss(key: &NewsKey) -> rss::Item {
+pub fn news_to_rss(key: &NewsKey, content: Option<&News>) -> rss::Item {
   rss::ItemBuilder::default()
     .author(Some(
       "Dimitri 'phaazon' Sabadie <dimitri.sabadie@gmail.com>".to_owned(),
@@ -15,13 +15,17 @@ pub fn news_to_rss(key: &NewsKey) -> rss::Item {
       key.year, key.month, key.day
     )))
     .title(Some(format!("{} {} {}", key.day, key.month, key.year)))
+	.description(match content {
+		Some(item) => Some(item.html.to_owned()),
+		None => None,
+	})
     .build()
 }
 
-pub fn rss_feed<'a>(items: impl IntoIterator<Item = &'a NewsKey>) -> rss::Channel {
-  let mut items: Vec<_> = items
+pub fn rss_feed(news_store: &NewsStore) -> rss::Channel {
+  let mut items: Vec<_> = news_store.keys()
     .into_iter()
-    .map(|key| (key, news_to_rss(key)))
+    .map(|key| (key, news_to_rss(key, news_store.get(key))))
     .collect();
   items.sort_by_key(|(key, _)| Reverse(*key));
 

@@ -64,7 +64,6 @@ pub fn by_key(
 #[get("/rss")]
 pub fn rss(state: &State<NewsState>) -> RawXml<String> {
   let news_store = state.news_store().read().expect("news store");
-  let news = news_store.keys();
-  let feed = rss_feed(news);
+  let feed = rss_feed(&news_store);
   RawXml(feed.to_string())
 }
