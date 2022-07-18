@@ -1,41 +1,20 @@
 mod api;
 mod config;
+mod html_wrapper;
+mod routes;
 mod rss;
 
 use crate::config::Config;
 use notify::Watcher;
-use rocket::{
-  fs::{FileServer, NamedFile},
-  get, launch,
-  log::LogLevel,
-  routes, State,
-};
+use rocket::{catchers, launch, log::LogLevel};
 use std::{
   net::{IpAddr, Ipv4Addr},
-  path::PathBuf,
   process::exit,
   sync::mpsc,
   thread,
   time::Duration,
 };
 use twin::news::NewsState;
-
-struct BackendState {
-  index_html_path: PathBuf,
-}
-
-impl BackendState {
-  fn new(config: &Config) -> Self {
-    Self {
-      index_html_path: config.webapp_dir.join("index.html"),
-    }
-  }
-}
-
-#[get("/<_whocares..>", rank = 20)]
-async fn serve_index_html(_whocares: PathBuf, state: &State<BackendState>) -> Option<NamedFile> {
-  NamedFile::open(&state.index_html_path).await.ok()
-}
 
 #[launch]
 fn rocket() -> _ {
@@ -49,19 +28,11 @@ fn rocket() -> _ {
       let state = NewsState::new(&config.news_root);
       run_state(&config, state.clone());
 
-      // serve the webapp directly, because fuck it
-      let backend_state = BackendState::new(&config);
-      let webapp_serve = FileServer::new(&config.webapp_dir, rocket::fs::Options::Index);
-
       rocket::custom(rocket_config)
         .manage(state)
-        .manage(backend_state)
-        .mount(
-          "/api",
-          routes![api::root, api::latest, api::by_key, api::rss],
-        )
-        .mount("/", webapp_serve)
-        .mount("/", routes![serve_index_html])
+        .register("/", catchers![routes::not_found::not_found])
+        // .mount("/", webapp_serve)
+        .mount("/", routes::routes())
     }
 
     Err(err) => {
