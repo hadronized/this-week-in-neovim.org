@@ -1,8 +1,9 @@
 mod config;
+mod html_cache;
 mod html_wrapper;
 mod routes;
 
-use crate::config::Config;
+use crate::{config::Config, html_cache::Cache};
 use notify::Watcher;
 use rocket::{catchers, fairing::AdHoc, launch, log::LogLevel};
 use std::{
@@ -13,6 +14,11 @@ use std::{
   time::Duration,
 };
 use twin::news::NewsState;
+
+#[cfg(debug_assertions)]
+const CACHE_TTL: Duration = Duration::from_secs(5); // 5s of HTML TTL
+#[cfg(not(debug_assertions))]
+const CACHE_TTL: Duration = Duration::from_secs(3600 * 24); // 1 day of HTML TTL
 
 #[launch]
 fn rocket() -> _ {
@@ -27,8 +33,12 @@ fn rocket() -> _ {
       let state = NewsState::new(&config.news_root);
       run_state(ignition_rx, &config, state.clone());
 
+      let cache = Cache::new(CACHE_TTL);
+      cache.schedule_eviction();
+
       rocket::custom(rocket_config)
         .manage(state)
+        .manage(cache)
         .register("/", catchers![routes::not_found::not_found])
         .attach(AdHoc::on_liftoff("state_sync", move |_| {
           Box::pin(async move {
