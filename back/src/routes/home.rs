@@ -1,14 +1,15 @@
-use std::cmp::Reverse;
-
+use crate::html_wrapper::html_wrap;
 use rocket::{get, response::content::RawHtml, State};
+use std::cmp::Reverse;
 use twin::news::NewsState;
 
+// TODO: cache the page
 #[get("/")]
 pub fn home(state: &State<NewsState>) -> RawHtml<String> {
-  view(state)
+  render(state)
 }
 
-fn view(state: &NewsState) -> RawHtml<String> {
+fn render(state: &NewsState) -> RawHtml<String> {
   let store = state.news_store().read().expect("news store");
   let mut keys: Vec<_> = store.keys().collect();
   let keys_len = keys.len();
@@ -60,6 +61,5 @@ fn view(state: &NewsState) -> RawHtml<String> {
     news_list = news_list.join("")
   );
 
-  // let news_list =
-  RawHtml(html)
+  RawHtml(html_wrap(html))
 }

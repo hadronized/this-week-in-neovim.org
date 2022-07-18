@@ -1,11 +1,13 @@
 mod api;
 mod config;
+mod html_wrapper;
 mod routes;
 mod rss;
 
 use crate::config::Config;
 use notify::Watcher;
 use rocket::{
+  catchers,
   fs::{FileServer, NamedFile},
   get, launch,
   log::LogLevel,
@@ -57,6 +59,7 @@ fn rocket() -> _ {
       rocket::custom(rocket_config)
         .manage(state)
         .manage(backend_state)
+        .register("/", catchers![routes::not_found::not_found])
         .mount(
           "/api",
           routes![api::root, api::latest, api::by_key, api::rss],
