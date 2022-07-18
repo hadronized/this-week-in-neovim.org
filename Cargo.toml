@@ -1,6 +1,5 @@
 [workspace]
 members = [
   "back",
-  "front",
   "twin",
 ]
