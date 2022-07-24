@@ -1,0 +1,10 @@
+[Unit]
+Description=Run twin-refresh once a week, every Monday morning CET
+Requires=twin-refresh.service
+
+[Timer]
+Unit=twin-refresh.service
+OnCalendar=Mon *-*-* 09:00:00
+
+[Install]
+WantedBy=timers.target
