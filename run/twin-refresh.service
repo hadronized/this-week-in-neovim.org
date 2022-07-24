@@ -5,6 +5,8 @@ Wants=twin-refresh.timer
 [Service]
 Type=oneshot
 ExecStart=/usr/local/bin/twin/twin-refresh
+User=phaazon
+Group=phaazon
 
 [Install]
 WantedBy=multi-user.target
