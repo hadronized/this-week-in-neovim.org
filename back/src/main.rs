@@ -5,7 +5,13 @@ mod routes;
 
 use crate::{config::Config, html_cache::Cache};
 use notify::Watcher;
-use rocket::{catchers, fairing::AdHoc, launch, log::LogLevel};
+use rocket::{
+  catchers,
+  fairing::AdHoc,
+  fs::{FileServer, Options},
+  launch,
+  log::LogLevel,
+};
 use std::{
   net::{IpAddr, Ipv4Addr},
   process::exit,
@@ -36,6 +42,8 @@ fn rocket() -> _ {
       let cache = Cache::new(CACHE_TTL);
       cache.schedule_eviction();
 
+      let static_fs = FileServer::new(config.static_dir, Options::default());
+
       rocket::custom(rocket_config)
         .manage(state)
         .manage(cache)
@@ -46,6 +54,7 @@ fn rocket() -> _ {
           })
         }))
         .mount("/", routes::routes())
+        .mount("/static", static_fs)
     }
 
     Err(err) => {

@@ -29,8 +29,8 @@ pub struct Config {
   /// Path where to read the weekly contents.
   pub news_root: PathBuf,
 
-  /// Directory to serve for the webapp.
-  pub webapp_dir: PathBuf,
+  /// Static directory (CSS, etc.).
+  pub static_dir: PathBuf,
 }
 
 impl Config {
