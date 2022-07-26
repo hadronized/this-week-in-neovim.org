@@ -2,6 +2,15 @@
 
 This repository holds the source code of https://this-week-in-neovim.org.
 
+<!-- vim-markdown-toc GFM -->
+
+* [Architecture](#architecture)
+* [How does it run in production](#how-does-it-run-in-production)
+* [Automatic updates every Monday](#automatic-updates-every-monday)
+* [Licences](#licences)
+
+<!-- vim-markdown-toc -->
+
 ## Architecture
 
 The website is composed of two main pieces:
@@ -33,5 +42,13 @@ a [timer](./run/twin-refresh.timer). That script simply `git pull --rebase` in t
 mounted in the docker container). For short: thanks to the notify thread and mounting the volume in the docker
 container, there is no service interruption to do to release a new weekly: the only thing is to merge to `master` on the
 [contents repository] before every Morning CET. The refresh date time is currently set on **Monday 9:00 AM CET**.
+
+## Licences
+
+The source code of the website itself (i.e. [this very repository](https://github.com/phaazon/this-week-in-neovim.org))
+is licensed with the [BSD-3 New Clause](./LICENSE).
+
+However, the actual content this is published (the “weekly news”) is licensed with CC-BY-SA-4.0. The license can be
+found [here](https://github.com/phaazon/this-week-in-neovim-contents).
 
 [contents repository]: https://github.com/phaazon/this-week-in-neovim-contents
