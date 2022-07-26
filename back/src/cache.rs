@@ -27,6 +27,10 @@ impl Cache {
     Self { cache, ttl }
   }
 
+  pub fn invalidate_all(&self) {
+    self.cache.lock().expect("cache lock").clear();
+  }
+
   /// Get a cached entry, if any, or compute it and cache it.
   pub fn cache(&self, key: &str, gen: impl FnOnce() -> String) -> String {
     let current = {

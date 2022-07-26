@@ -1,4 +1,4 @@
-use crate::{html_cache::Cache, html_wrapper::html_wrap};
+use crate::{cache::Cache, html_wrapper::html_wrap};
 use rocket::{
   get,
   request::FromParam,

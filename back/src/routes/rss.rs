@@ -2,7 +2,7 @@ use rocket::{get, response::content::RawXml, State};
 use std::cmp::Reverse;
 use twin::news::{News, NewsKey, NewsState, NewsStore};
 
-use crate::html_cache::Cache;
+use crate::cache::Cache;
 
 #[get("/rss")]
 pub fn rss(cache: &State<Cache>, state: &State<NewsState>) -> RawXml<String> {
