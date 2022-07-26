@@ -1,9 +1,9 @@
-mod config;
 mod cache;
+mod config;
 mod html_wrapper;
 mod routes;
 
-use crate::{config::Config, cache::Cache};
+use crate::{cache::Cache, config::Config};
 use notify::Watcher;
 use rocket::{
   catchers,
