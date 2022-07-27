@@ -60,5 +60,5 @@ fn render(state: &NewsState) -> String {
     news_list = news_list.join("")
   );
 
-  html_wrap(html)
+  html_wrap("", html)
 }

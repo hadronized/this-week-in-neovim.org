@@ -76,15 +76,19 @@ fn render(key: NewsKey, cache: &Cache, state: &NewsState) -> Option<RawHtml<Stri
         "".to_owned()
       };
 
-      let html = html_wrap(format!(
-        include_str!("week.html"),
-        prev_date = prev_date,
-        next_date = next_date,
-        day = key.day,
-        month = key.month,
-        year = key.year,
-        contents = news.html
-      ));
+      let title = format!("{} {} {}", key.day, key.month, key.year);
+      let html = html_wrap(
+        title,
+        format!(
+          include_str!("week.html"),
+          prev_date = prev_date,
+          next_date = next_date,
+          day = key.day,
+          month = key.month,
+          year = key.year,
+          contents = news.html
+        ),
+      );
 
       Some(html)
     })
