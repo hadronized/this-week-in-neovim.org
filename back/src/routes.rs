@@ -6,5 +6,5 @@ pub mod rss;
 pub mod week;
 
 pub fn routes() -> Vec<Route> {
-  routes![home::home, week::by_key, week::latest, rss::rss]
+  routes![home::home, week::by_key, week::latest, rss::rss,]
 }
