@@ -15,43 +15,22 @@ fn render(state: &NewsState) -> String {
 
   keys.sort_by_key(|&&k| Reverse(k));
 
-  let mut iter = keys.iter();
-
-  let first = iter.next().map(|key| {
-    let href = format!("/{}/{}/{:02}", key.year, key.month, key.day);
-    format!(
-      "<li class=\"is-size-2\">
-        <a href={href}>
-          {key_year} {key_month} {key_day:02} #{keys_len}
-        </a>
-
-        <a href=\"/latest\">
-          <span class=\"tag is-link is-large\">latest</span>
-        </a>
-      </li>",
-      key_year = key.year,
-      key_month = key.month,
-      key_day = key.day
-    )
-  });
-
-  let news_list: Vec<_> = first
+  let news_list: Vec<_> = keys
     .into_iter()
-    .chain(iter.enumerate().map(|(k, key)| {
+    .enumerate()
+    .map(|(k, key)| {
       let href = format!("/{}/{}/{:02}", key.year, key.month, key.day);
-      let k = keys_len - k - 1;
+      let k = keys_len - k;
 
       format!(
-        "<li class=\"is-size-2\">
-          <a href={href}>
-            {key_year} {key_month} {key_day:02} #{k}
-          </a>
-        </li>",
+        include_str!("./home_listing.html"),
+        href = href,
         key_year = key.year,
         key_month = key.month,
-        key_day = key.day
+        key_day = key.day,
+        k = k,
       )
-    }))
+    })
     .collect();
 
   let html = format!(
