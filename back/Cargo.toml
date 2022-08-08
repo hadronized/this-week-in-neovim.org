@@ -1,6 +1,6 @@
 [package]
 name = "this-week-in-neovim-backend"
-version = "0.3.2"
+version = "0.3.3"
 license = "BSD-3-Clause"
 authors = ["Dimitri Sabadie <dimitri.sabadie@gmail.com>"]
 description = "Official webapp for this-week-in-neovim.org."
