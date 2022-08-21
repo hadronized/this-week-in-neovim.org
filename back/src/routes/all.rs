@@ -3,12 +3,9 @@ use rocket::{get, response::content::RawHtml, State};
 use std::cmp::Reverse;
 use twin::news::NewsState;
 
-/// Maximum number of updates to display on the home page.
-const MAX_UPDATES_DISPLAYED: usize = 5;
-
-#[get("/")]
-pub fn home(cache: &State<Cache>, state: &State<NewsState>) -> RawHtml<String> {
-  RawHtml(cache.cache("/home", || render(state)))
+#[get("/all")]
+pub fn all(cache: &State<Cache>, state: &State<NewsState>) -> RawHtml<String> {
+  RawHtml(cache.cache("/all", || render(state)))
 }
 
 fn render(state: &NewsState) -> String {
@@ -21,7 +18,6 @@ fn render(state: &NewsState) -> String {
   let news_list: Vec<_> = keys
     .into_iter()
     .enumerate()
-    .take(MAX_UPDATES_DISPLAYED)
     .map(|(k, key)| {
       let href = format!("/{}/{}/{:02}", key.year, key.month, key.day);
       let k = keys_len - k;
@@ -37,11 +33,7 @@ fn render(state: &NewsState) -> String {
     })
     .collect();
 
-  let html = format!(
-    include_str!("home.html"),
-    keys_len = keys_len,
-    news_list = news_list.join("")
-  );
+  let html = format!(include_str!("all.html"), news_list = news_list.join(""));
 
   html_wrap("", html)
 }
