@@ -2,7 +2,8 @@ use serde::{de::IntoDeserializer, Deserialize, Serialize};
 use std::{
   collections::HashMap,
   fmt::Display,
-  fs, io,
+  fs::{self, DirEntry},
+  io,
   path::{Path, PathBuf},
   str::FromStr,
   sync::{Arc, RwLock},
@@ -80,6 +81,7 @@ pub struct News {
 }
 
 impl News {
+  /// Parse a [`News`] from a single Markdown-formatted file.
   pub fn parse_from_md(md: impl AsRef<str>) -> Self {
     let opts = pulldown_cmark::Options::all();
     let parser = pulldown_cmark::Parser::new_ext(md.as_ref(), opts);
@@ -94,6 +96,7 @@ impl News {
     }
   }
 
+  /// Parse a [`News`] by first loading a file and then parsing its content.
   pub fn load_from_md(path: impl AsRef<Path>) -> Result<Self, NewsError> {
     let content = fs::read_to_string(path)?;
     let news = Self::parse_from_md(&content);
@@ -112,9 +115,19 @@ pub struct NewsKey {
 }
 
 impl NewsKey {
-  pub fn to_path(&self, root: impl AsRef<Path>) -> PathBuf {
+  pub fn to_file_path(&self, root: impl AsRef<Path>) -> PathBuf {
     PathBuf::from(format!(
       "{root}/{year}/{month}/{day:02}.md",
+      root = root.as_ref().display(),
+      year = self.year,
+      month = self.month,
+      day = self.day
+    ))
+  }
+
+  pub fn to_dir_path(&self, root: impl AsRef<Path>) -> PathBuf {
+    PathBuf::from(format!(
+      "{root}/{year}/{month}/{day:02}",
       root = root.as_ref().display(),
       year = self.year,
       month = self.month,
@@ -132,6 +145,17 @@ fn file_name_to_day(name: &str) -> Result<u8, NewsError> {
   let nn = &name[0..2];
 
   nn.parse()
+    .map_err(|_| NewsError::CannotParseDay(name.to_owned()))
+}
+
+fn dir_name_to_day(name: &str) -> Result<u8, NewsError> {
+  // the format is NN, so the len() must always be 2
+  if name.len() != 2 {
+    return Err(NewsError::CannotParseDay(name.to_owned()));
+  }
+
+  name
+    .parse()
     .map_err(|_| NewsError::CannotParseDay(name.to_owned()))
 }
 
@@ -166,53 +190,15 @@ impl NewsStore {
   }
 
   /// Populate the store by scanning the root directory adding all of its content.
+  ///
+  /// We currently support two ways of reading news:
+  ///
+  /// - Encoded as Markdown in a single file, e.g. 12.md, where the number is the day.
+  /// - The news is split into sub-directories in a directory, e.g. 12/…, where the number is the day.
   pub fn populate_from_root(&mut self) -> Result<(), NewsError> {
     for entry in fs::read_dir(&self.root_path)? {
       if let Ok(entry) = entry {
-        log::debug!("traversing year {}", entry.path().display());
-
-        if entry.path().is_dir() {
-          let year = entry
-            .file_name()
-            .to_str()
-            .and_then(|name| name.parse().ok())
-            .ok_or_else(|| NewsError::CannotParseYear(format!("{:?}", entry.file_name())))?;
-
-          for month_entry in fs::read_dir(entry.path())? {
-            if let Ok(month_entry) = month_entry {
-              log::debug!("traversing month {}", month_entry.path().display());
-
-              if month_entry.path().is_dir() {
-                let month: Month = month_entry
-                  .file_name()
-                  .to_str()
-                  .and_then(|name| name.parse().ok())
-                  .ok_or_else(|| {
-                    NewsError::CannotParseMonth(format!("{:?}", month_entry.file_name()))
-                  })?;
-
-                for day_entry in fs::read_dir(month_entry.path())? {
-                  if let Ok(day_entry) = day_entry {
-                    log::debug!("found day {}", day_entry.path().display());
-
-                    if day_entry.path().is_file() {
-                      let day = day_entry
-                        .file_name()
-                        .to_str()
-                        .ok_or_else(|| {
-                          NewsError::CannotParseDay(format!("{:?}", day_entry.file_name()))
-                        })
-                        .and_then(file_name_to_day)?;
-
-                      let key = NewsKey { year, month, day };
-                      let _ = self.update(key)?;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        self.traverse_year(entry)?;
       }
     }
 
@@ -221,18 +207,85 @@ impl NewsStore {
     Ok(())
   }
 
+  fn traverse_year(&mut self, entry: DirEntry) -> Result<(), NewsError> {
+    log::debug!("traversing year {}", entry.path().display());
+
+    if entry.path().is_dir() {
+      let year = entry
+        .file_name()
+        .to_str()
+        .and_then(|name| name.parse().ok())
+        .ok_or_else(|| NewsError::CannotParseYear(format!("{:?}", entry.file_name())))?;
+
+      for month_entry in fs::read_dir(entry.path())? {
+        if let Ok(month_entry) = month_entry {
+          self.traverse_month(month_entry, year)?;
+        }
+      }
+    }
+
+    Ok(())
+  }
+
+  fn traverse_month(&mut self, entry: DirEntry, year: u16) -> Result<(), NewsError> {
+    log::debug!("traversing month {}", entry.path().display());
+
+    if entry.path().is_dir() {
+      let month: Month = entry
+        .file_name()
+        .to_str()
+        .and_then(|name| name.parse().ok())
+        .ok_or_else(|| NewsError::CannotParseMonth(format!("{:?}", entry.file_name())))?;
+
+      for day_entry in fs::read_dir(entry.path())? {
+        if let Ok(day_entry) = day_entry {
+          self.traverse_day(day_entry, year, month)?;
+        }
+      }
+    }
+
+    Ok(())
+  }
+
+  fn traverse_day(&mut self, entry: DirEntry, year: u16, month: Month) -> Result<(), NewsError> {
+    log::debug!("found day {}", entry.path().display());
+
+    if entry.path().is_file() {
+      let day: u8 = entry
+        .file_name()
+        .to_str()
+        .ok_or_else(|| NewsError::CannotParseDay(format!("{:?}", entry.file_name())))
+        .and_then(file_name_to_day)?;
+
+      let key = NewsKey { year, month, day };
+      self.update_from_file_path(key)?;
+    } else if entry.path().is_dir() {
+      let day = entry
+        .file_name()
+        .to_str()
+        .ok_or_else(|| NewsError::CannotParseDay(format!("{:?}", entry.file_name())))
+        .and_then(dir_name_to_day)?;
+
+      let key = NewsKey { year, month, day };
+
+      log::debug!("found a nice one: {:?}", key);
+    }
+
+    Ok(())
+  }
+
   /// Update (or create) a weekly news by reading the Markdown news and converting it to HTML.
   ///
   /// If some HTML was already present for that key, it is returned.
-  pub fn update(&mut self, key: NewsKey) -> Result<Option<News>, NewsError> {
-    let path = key.to_path(&self.root_path);
+  fn update_from_file_path(&mut self, key: NewsKey) -> Result<(), NewsError> {
+    let path = key.to_file_path(&self.root_path);
 
     log::debug!("updating news key: {:?} (path={})", key, path.display());
 
     let news = News::load_from_md(path)?;
-    let previous_news = self.news.insert(key, news);
+    let _ = self.news.insert(key, news);
 
-    Ok(previous_news)
+    Ok(())
   }
 
   /// Traverse the news and set the prev / next news keys.
