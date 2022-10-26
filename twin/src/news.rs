@@ -104,6 +104,16 @@ impl News {
   }
 }
 
+impl Default for News {
+  fn default() -> Self {
+    Self {
+      html: String::new(),
+      prev: None,
+      next: None,
+    }
+  }
+}
+
 /// Key used to uniquely refer to a weekly news.
 ///
 /// It is composed of the year and week number.
@@ -267,8 +277,7 @@ impl NewsStore {
         .and_then(dir_name_to_day)?;
 
       let key = NewsKey { year, month, day };
-
-      log::debug!("found a nice one: {:?}", key);
+      self.update_from_dir_path(key, entry)?;
     }
 
     Ok(())
@@ -284,6 +293,42 @@ impl NewsStore {
 
     let news = News::load_from_md(path)?;
     let _ = self.news.insert(key, news);
+
+    Ok(())
+  }
+
+  /// Update (or creat) a weekly news by (recursively) extracting all the Markdown content from all files in the
+  /// directory and concatenating them into a single one. The directory entries are sorted by names and glued according
+  /// to a DFS of the tree.
+  fn update_from_dir_path(&mut self, key: NewsKey, dir: DirEntry) -> Result<(), NewsError> {
+    log::debug!(
+      "updating news key: {:?}, (dir={})",
+      key,
+      dir.path().display()
+    );
+
+    let mut news = News::default();
+    self.update_from_subdirs(&mut news, dir)?;
+    let _ = self.news.insert(key, news);
+
+    Ok(())
+  }
+
+  fn update_from_subdirs(&mut self, news: &mut News, file: DirEntry) -> Result<(), NewsError> {
+    if file.path().is_dir() {
+      let mut files = fs::read_dir(file.path())?
+        .filter_map(|entry| entry.ok())
+        .collect::<Vec<_>>();
+      files.sort_by_key(|entry| entry.path());
+
+      for subfile in files {
+        self.update_from_subdirs(news, subfile)?;
+      }
+    } else {
+      let temporary_news = News::load_from_md(file.path())?;
+      news.html += "\n";
+      news.html += &temporary_news.html;
+    }
 
     Ok(())
   }
