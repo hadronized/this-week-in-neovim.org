@@ -13,21 +13,21 @@ pub fn rss(cache: &State<Cache>, state: &State<NewsState>) -> RawXml<String> {
   }))
 }
 
-fn month_to_ordinal(month: Month) -> String {
-  return String::from(match month {
-    Month::Jan => "01",
-    Month::Feb => "02",
-    Month::Mar => "03",
-    Month::Apr => "04",
-    Month::May => "05",
-    Month::Jun => "06",
-    Month::Jul => "07",
-    Month::Aug => "08",
-    Month::Sep => "09",
-    Month::Oct => "10",
-    Month::Nov => "11",
-    Month::Dec => "12"
-  })
+fn month_to_ordinal(month: Month) -> u8 {
+  return match month {
+    Month::Jan => 1,
+    Month::Feb => 2,
+    Month::Mar => 3,
+    Month::Apr => 4,
+    Month::May => 5,
+    Month::Jun => 6,
+    Month::Jul => 7,
+    Month::Aug => 8,
+    Month::Sep => 9,
+    Month::Oct => 10,
+    Month::Nov => 11,
+    Month::Dec => 12
+  };
 }
 
 pub fn news_to_rss(key: &NewsKey, content: Option<&News>) -> ::rss::Item {
@@ -38,7 +38,7 @@ pub fn news_to_rss(key: &NewsKey, content: Option<&News>) -> ::rss::Item {
     .pub_date(Some(format!(
       "{}",
       format!(
-        "{}-{}-{}T00:00:00+00:00",
+        "{}-{:02}-{:02}T00:00:00+00:00",
         key.year, month_to_ordinal(key.month), key.day
       )
     )))
