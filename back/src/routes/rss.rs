@@ -1,6 +1,6 @@
 use rocket::{get, response::content::RawXml, State};
 use std::cmp::Reverse;
-use twin::news::{News, NewsKey, NewsState, NewsStore};
+use twin::news::{News, NewsKey, NewsState, NewsStore, Month};
 
 use crate::cache::Cache;
 
@@ -13,6 +13,23 @@ pub fn rss(cache: &State<Cache>, state: &State<NewsState>) -> RawXml<String> {
   }))
 }
 
+fn month_to_ordinal(month: Month) -> String {
+  return String::from(match month {
+    Month::Jan => "01",
+    Month::Feb => "02",
+    Month::Mar => "03",
+    Month::Apr => "04",
+    Month::May => "05",
+    Month::Jun => "06",
+    Month::Jul => "07",
+    Month::Aug => "08",
+    Month::Sep => "09",
+    Month::Oct => "10",
+    Month::Nov => "11",
+    Month::Dec => "12"
+  })
+}
+
 pub fn news_to_rss(key: &NewsKey, content: Option<&News>) -> ::rss::Item {
   ::rss::ItemBuilder::default()
     .author(Some(
@@ -20,7 +37,10 @@ pub fn news_to_rss(key: &NewsKey, content: Option<&News>) -> ::rss::Item {
     ))
     .pub_date(Some(format!(
       "{}",
-      format!("{} {} {} GMT", key.day, key.month, key.year)
+      format!(
+        "{}-{}-{}T00:00:00+00:00",
+        key.year, month_to_ordinal(key.month), key.day
+      )
     )))
     .link(Some(format!(
       "https://this-week-in-neovim.org/{}/{}/{}",
