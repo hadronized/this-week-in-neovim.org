@@ -18,15 +18,12 @@ pub fn news_to_rss(key: &NewsKey, content: Option<&News>) -> ::rss::Item {
     .author(Some(
       "Dimitri 'phaazon' Sabadie <dimitri.sabadie@gmail.com>".to_owned(),
     ))
-    .pub_date(Some(format!(
-      "{}",
-      format!("{} {} {} GMT", key.day, key.month, key.year)
-    )))
+    .pub_date(Some(format_date(key)))
     .link(Some(format!(
       "https://this-week-in-neovim.org/{}/{}/{}",
       key.year, key.month, key.day
     )))
-    .title(Some(format!("{} {} {}", key.day, key.month, key.year)))
+    .title(Some(format_date(key)))
     .description(match content {
       Some(item) => Some(item.html.to_owned()),
       None => None,
@@ -42,9 +39,7 @@ pub fn rss_feed(news_store: &NewsStore) -> ::rss::Channel {
     .collect();
   items.sort_by_key(|(key, _)| Reverse(*key));
 
-  let last_build_date = items
-    .get(0)
-    .map(|(key, _)| format!("{} {} {} GMT", key.day, key.month, key.year));
+  let last_build_date = items.get(0).map(|(key, _)| format_date(key));
 
   let items: Vec<_> = items.into_iter().map(|(_, news)| news).collect();
 
@@ -54,4 +49,9 @@ pub fn rss_feed(news_store: &NewsStore) -> ::rss::Channel {
     .items(items)
     .last_build_date(last_build_date)
     .build()
+}
+
+/// Create RFC 822 conforming date-time from a newskey.
+fn format_date(key: &NewsKey) -> String {
+  format!("{} {} {} {} GMT", key.day, key.month, key.year, "00:00:00")
 }
