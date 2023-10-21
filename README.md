@@ -1,4 +1,4 @@
-Notice: This project now lives at https://dotfyle.com/this-week-in-neovim.
+Notice: A continuation of this project now lives at https://dotfyle.com/this-week-in-neovim.\
 See https://dotfyle.com/this-week-in-neovim/46#update-twin for a longer explanation.
 
 ---
