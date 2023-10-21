@@ -1,6 +1,11 @@
+Notice: This project now lives at https://dotfyle.com/this-week-in-neovim.
+See https://dotfyle.com/this-week-in-neovim/46#update-twin for a longer explanation.
+
+---
+
 # This Week In Neovim
 
-This repository holds the source code of https://this-week-in-neovim.org.
+This repository holds the source code of https://this-week-in-neovim.org (this domain does not belong to this project anymore. Use at your own risk.).
 
 <!-- vim-markdown-toc GFM -->
 
